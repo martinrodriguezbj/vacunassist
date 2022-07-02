@@ -1,0 +1,62 @@
+<div class="col-md-4 mx-auto">
+    <div class="card">
+        <div class="card-header">
+            <h3>Asignar turno</h3>
+            <h2>Paciente: <span>{{paciente.name}} {{paciente.surname}}</span></h2>
+        </div>
+        <div class="card-body">
+            <form action="/turns/asignar-turno/{{turno._id}}" method="POST">
+
+                 <div class="form group">
+
+                    <label for="date">Seleccionar fecha</label>
+                <input id="date-selector" type="date" name="date" required="true">
+                 </div>
+
+                 <div class="form group">
+                    <label for="hour">Seleccionar hora</label>
+                    <select id="hour" name="hour" class="">
+                        <option value=''>No hay horarios</option>
+                    </select>
+                </div>
+
+                <div class="form group">
+                    <button class="btn btn btn-primary block" type="submit">Asignar turno</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    // date input has a minimum of today
+    var today = new Date();
+    var dd = today.getDate();
+    var mm = today.getMonth()+1; //January is 0!
+    var yyyy = today.getFullYear();
+    if(dd<10) {
+        dd='0'+dd
+    }
+    if(mm<10) {
+        mm='0'+mm
+    }
+    today = yyyy+'-'+mm+'-'+dd;
+    document.getElementById("date-selector").setAttribute("min", today);
+
+    // date input loads hours when selected date is changed
+    $("#date-selector").change(function(){
+        var date = $("#date-selector").val();
+        var url = "/turns/asignar-turno/horarios?date=" + date;
+        
+        $.get(url, function(data){
+            console.log(data)
+            var html = "";
+            for(var i = 0; i < data.length; i++){
+                html += "<option value='" + data[i] + "'>" + data[i] + "</option>";
+            }
+            if (html === "") {
+                html = "<option value=''>No hay horarios</option>";
+            }
+            $("#hour").html(html);
+        });
+    });
+</script>

@@ -80,7 +80,6 @@ router.delete('/turns/delete/:id', isAuthenticated, async (req, res) => {
 //cancelar turno
 router.delete('/turns/cancel/:id', isAuthenticated, async (req, res) => {
     const { orderDate } = await Turno.findById(req.params.id);
-    console.log(orderDate);
     if ((orderDate > Date.now()) || (orderDate === null)) {
         await Turno.findByIdAndDelete(req.params.id);
         req.flash('success_msg', 'Turno cancelado correctamente');
@@ -107,6 +106,61 @@ router.get('/turnos/solicitudes-turnos', isAuthenticated, async (req, res) => {
     turnos.filter(turno => turno.orderDate === null);
 
     res.render('turns/solicitudes-turnos', { turnos });
+})
+
+router.get('/turns/asignar-turno/horarios', async (req, res) => {
+    // horarios de 8am a 17pm en intervalos de 1 hora
+    const HORARIOS = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+
+    const date = req.query.date;
+
+    function isWeekend(date = new Date()) {
+        return date.getDay() === 6 || date.getDay() === 0;
+    }
+
+    if (isWeekend(new Date(date))) {
+        return res.json([]);
+    }
+    console.log({body: req.query});
+    
+    const turnos = await Turno.find({
+        orderDate: { 
+            $gte: moment(new Date(date)).subtract(1, 'days').toDate(),
+            $lt: moment(new Date(date)).add(1, 'days').toDate()
+        },
+    })
+    horariosDisponibles= [...HORARIOS];
+    turnos.map(turno => {
+        console.log({horaTurno: turno.orderDate.getHours() + ":00"})
+        const indexHorarioOcupado = horariosDisponibles.indexOf(turno.orderDate.getHours() + ":00");
+        if (indexHorarioOcupado > -1) {
+            horariosDisponibles.splice(indexHorarioOcupado, 1);
+        }
+    });
+
+    console.log({turnosDelDia: turnos, $gte: moment(new Date(date)).subtract(1, 'days').toDate(),
+    $lt: moment(new Date(date)).add(1, 'days').toDate()});
+
+
+    res.json(horariosDisponibles);
+})
+
+router.get('/turns/asignar-turno/:id', async (req, res) => {
+    const turno = await Turno.findById(req.params.id);
+    const paciente = await User.findById(turno.user);
+    res.render('turns/seleccionar-fecha-turno', { paciente, turno });
+})
+
+router.post('/turns/asignar-turno/:id', async (req, res) => {
+    const turno = await Turno.findById(req.params.id);
+    const arr = req.body.hour.split(':');
+    const date = moment(new Date(req.body.date.split('-')).setHours(arr[0], arr[1], 0, 0));
+
+    turno.orderDate = date;
+    turno.appointed = true;
+    await turno.save();
+    req.flash('success_msg', 'Turno asignado correctamente');
+    res.render('turns/solicitudes-turnos');
 })
 
 router.post('/turns/solicitudes-turnos/asignarSinRiesgo/:id', async (req, res) => {
@@ -143,7 +197,7 @@ router.post('/turns/solicitudes-turnos/asignarSinRiesgo/:id', async (req, res) =
 })
 
 //Asignar turno - administrador
-router.post('/turns/solicitudes-turnos/asignarConRiesgo/:id', async (req, res) => {
+router.post('/turns/solicitudes-turnos/:id', async (req, res) => {
     const { id } = req.params;
     const turno = await Turno.findById(id);
     const paciente = await User.findById(turno.user);

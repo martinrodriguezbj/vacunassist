@@ -38,25 +38,14 @@
 
       {{!-- esMayor es un helper de handlerbars, devuelve true si el paciente es mayor de 60 años
       o si es un paciente de riesgo --}}
-      {{#if (esMayor usuario.edad usuario.riesgo)}}
       <th>
-        <form action="/turns/solicitudes-turnos/asignarConRiesgo/{{_id}}" method="POST">
-          <input type="hidden" name="_method" value="PUT">
+        <form action="/turns/asignar-turno/{{_id}}" method="GET">
+          <input type="hidden" name="_method" value="GET">
           <button type="submit">
-            asignar Turno
+            Asignar turno
           </button>
         </form>
       </th>
-      {{else}}
-      <th>
-        <form action="/turns/solicitudes-turnos/asignarSinRiesgo/{{_id}}" method="POST">
-          <input type="hidden" name="_method" value="PUT">
-          <button type="submit">
-            asignar Turno
-          </button>
-        </form>
-      </th>
-      {{/if}}
       {{/if}}
 
       {{#unless appointed}}
