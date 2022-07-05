@@ -14,9 +14,9 @@
       <th scope="col">Fecha Asignada</th>
       {{!-- <th scope="col">Asignar turno</th>
       <th scope="col">Obtener turno</th> --}}
-      {{#unless appointed}}
+      {{!-- {{#unless appointed}}
       <th scope="col">Rechazar solicitud</th>
-      {{/unless}}
+      {{/unless}} --}}
       <th scope="col">Notificar turno</th>
     </tr>
   </thead>
@@ -50,13 +50,39 @@
       </th>
       {{/if}}
 
-      {{#unless appointed}}
+      {{!-- {{#unless appointed}}
       <th>
         <form action="/turns/rechazarSolicitud/{{_id}}?_method=DELETE" method="POST">
           <input type="hidden" name="_method" value="DELETE">
-          <button name="boton" value="notificar" type="submit">
+
+          <!-- Button trigger modal -->
+          <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#exampleModal{{_id}}">
             Rechazar solicitud
           </button>
+          <!-- Modal -->
+          <div class="modal fade" id="#exampleModal{{_id}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h3 class="modal-title" style="color:black" id="exampleModalLabel">Está seguro de que desea rechazar la solicitud de turno?</h3>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body" style="color:black">
+                  PACIENTE: {{usuario.surname}}, {{usuario.name}} * 
+                  DNI: {{usuario.dni}} * 
+                  VACUNA: {{vaccineName}} 
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                  <button type="submit" class="btn btn-danger">Rechazar solicitud</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </form>
       </th>
       {{else}}
@@ -68,7 +94,7 @@
           </button>
         </form>
       </th>
-      {{/unless}}
+      {{/unless}} --}}
 
       {{#if orderDate}}
       {{#if notified}}

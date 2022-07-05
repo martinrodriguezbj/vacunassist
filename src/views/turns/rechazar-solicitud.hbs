@@ -1,0 +1,35 @@
+<h2>
+  <center>El paciente ya tiene colocada la vacuna</center>
+
+</h2>
+<table class="table table-dark">
+  <thead>
+    <tr>
+      <th scope="col">Paciente</th>
+      <th scope="col">DNI</th>
+      <th scope="col">Vacuna</th>
+
+      <th scope="col">Rechazar solicitud</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>{{paciente.surname}}, {{paciente.name}}</th>
+      <th>{{paciente.dni}}</th>
+      <th>{{turno.vaccineName}}</th>
+
+      {{!-- esMayor es un helper de handlerbars, devuelve true si el paciente es mayor de 60 años
+      o si es un paciente de riesgo --}}
+      <th>
+        <form action="/turns/rechazarSolicitud/{{turno._id}}?_method=DELETE" method="POST">
+          <input type="hidden" name="_method" value="DELETE">
+          <button type="submit" name="btn" value="rechazar">
+              Rechazar Solicitud
+            </button>
+ 
+        </form>
+      </th>
+
+    </tr>
+  </tbody>
+</table>

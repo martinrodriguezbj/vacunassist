@@ -117,7 +117,7 @@ router.get('/turnos/solicitudes-turnos', isAuthenticated, async (req, res) => {
 
 
 //-----------------------------ASIGNAR TURNO/HORARIOS QUE HIZO LUCAS---------------------------------
-router.get('/turns/asignar-turno/horarios',isAuthenticated, async (req, res) => {
+router.get('/turns/asignar-turno/horarios', isAuthenticated, async (req, res) => {
     // horarios de 8am a 17pm en intervalos de 10 minutos
     const HORARIOS = ["08:00", "8:10", "8:20", "8:30", "8:40", "8:50", "09:00", "9:10", "9:20", "9:30", "9:40", "9:50",
         "10:00", "10:10", "10:20", "10:30", "10:40", "10:50", "11:00", "11:10", "11:20", "11:30", "11:40", "11:50",
@@ -161,21 +161,17 @@ router.get('/turns/asignar-turno/horarios',isAuthenticated, async (req, res) => 
 
     res.json(horariosDisponibles);
 })
-//---------------------------------------------------------------------------------------------------------
 
 //-----------------UN ASIGNAR TURNO QUE ES UN GET que redirecciona----------------------------------
-router.get('/turns/asignar-turno/:id',isAuthenticated, async (req, res) => {
+router.get('/turns/asignar-turno/:id', isAuthenticated, async (req, res) => {
     const turno = await Turno.findById(req.params.id);
     const paciente = await User.findById(turno.user);
-    const boton = req.body.boton; 
-    console.log('boton '+ req.body.boton); 
-    let rep; 
 
-    if(boton !== 'reprogramar'){
-        rep = null;
-    }else{
-        rep = boton; 
-    }
+    const vacunas = await Vaccine.findOne({ user: paciente.id, name: turno.vaccineName });
+    console.log('vacunas ' + vacunas);
+
+    let rechazar = false;
+
     let fIni = new Date(Date.now());
     let fFin = new Date(Date.now());
 
@@ -183,20 +179,36 @@ router.get('/turns/asignar-turno/:id',isAuthenticated, async (req, res) => {
     var mmI = fIni.getMonth() + 1; //January is 0!
     var yyyyI = fIni.getFullYear();
 
+    if (vacunas) {
+        rechazar = true;
+        res.render('./turns/rechazar-solicitud', {turno, paciente });
+    } else {
 
-    if (paciente.riesgo) {
-        if (turno.vaccineName === 'Gripe') {
-            fFin = moment(fFin).add(90, 'days').toDate();
+        if (paciente.riesgo) {
+            if (turno.vaccineName === 'Gripe') {
+                fFin = moment(fFin).add(90, 'days').toDate();
 
-            var ddF = fFin.getDate();
-            var mmF = fFin.getMonth() + 1; //January is 0!
-            var yyyyF = fFin.getFullYear();
-            fFin = ddF + '-' + mmF + '-' + yyyyF;
-            fIni = ddI + '-' + mmI + '-' + yyyyI;
-            res.render('turns/seleccionar-fecha-turno', { paciente, turno, fIni, fFin, rep });
-            return;
+                var ddF = fFin.getDate();
+                var mmF = fFin.getMonth() + 1; //January is 0!
+                var yyyyF = fFin.getFullYear();
+                fFin = ddF + '-' + mmF + '-' + yyyyF;
+                fIni = ddI + '-' + mmI + '-' + yyyyI;
+                res.render('turns/seleccionar-fecha-turno', { paciente, turno, fIni, fFin });
+                return;
+            } else {
+                fFin = moment(fFin).add(7, 'days').toDate();
+
+
+                var ddF = fFin.getDate();
+                var mmF = fFin.getMonth() + 1; //January is 0!
+                var yyyyF = fFin.getFullYear();
+                fFin = ddF + '-' + mmF + '-' + yyyyF;
+                fIni = ddI + '-' + mmI + '-' + yyyyI;
+                res.render('turns/seleccionar-fecha-turno', { paciente, turno, fIni, fFin });
+                return;
+            }
         } else {
-            fFin = moment(fFin).add(7, 'days').toDate();
+            fFin = moment(fFin).add(180, 'days').toDate();
 
 
             var ddF = fFin.getDate();
@@ -204,38 +216,27 @@ router.get('/turns/asignar-turno/:id',isAuthenticated, async (req, res) => {
             var yyyyF = fFin.getFullYear();
             fFin = ddF + '-' + mmF + '-' + yyyyF;
             fIni = ddI + '-' + mmI + '-' + yyyyI;
-            res.render('turns/seleccionar-fecha-turno', { paciente, turno, fIni, fFin, rep });
+            res.render('turns/seleccionar-fecha-turno', { paciente, turno, fIni, fFin });
             return;
         }
-    } else {
-        fFin = moment(fFin).add(180, 'days').toDate();
-
-
-        var ddF = fFin.getDate();
-        var mmF = fFin.getMonth() + 1; //January is 0!
-        var yyyyF = fFin.getFullYear();
-        fFin = ddF + '-' + mmF + '-' + yyyyF;
-        fIni = ddI + '-' + mmI + '-' + yyyyI;
-        res.render('turns/seleccionar-fecha-turno', { paciente, turno, fIni, fFin, rep });
-        return;
     }
-
 })
 //---------------------------------------------------------------------------------------------------------
 
 
 //------------------------RUTA POST -------------------------------------------------------------------
-router.post('/turns/asignar-turno2/:id',isAuthenticated, async (req, res) => {
+router.post('/turns/asignar-turno2/:id', isAuthenticated, async (req, res) => {
     const turno = await Turno.findById(req.params.id);
     const paciente = await User.findById(turno.user);
-    const boton = req.body.boton; 
-    console.log('boton '+ req.body.boton); 
-    let rep; 
 
-    if(boton !== 'reprogramar'){
+    const boton = req.body.boton;
+
+    let rep;
+
+    if (boton !== 'reprogramar') {
         rep = null;
-    }else{
-        rep = boton; 
+    } else {
+        rep = boton;
     }
     let fIni = new Date(Date.now());
     let fFin = new Date(Date.now());
@@ -285,7 +286,7 @@ router.post('/turns/asignar-turno2/:id',isAuthenticated, async (req, res) => {
 
 
 //-----------------------OTRO ASIGNAR TURNO QUE ESTAMOS HACIENDO--------------------------------------
-router.post('/turns/asignar-turno/:id',isAuthenticated, async (req, res) => {
+router.post('/turns/asignar-turno/:id', isAuthenticated, async (req, res) => {
     const turno = await Turno.findById(req.params.id);
     const paciente = await User.findById(turno.user);
     const arr = req.body.hour.split(':');
@@ -314,10 +315,10 @@ router.post('/turns/asignar-turno/:id',isAuthenticated, async (req, res) => {
                 turno.appointed = true;
                 await turno.save();
                 req.flash('success_msg', 'Turno asignado correctamente');
-                if(req.body.boton === 'reprogramar'){
+                if (req.body.boton === 'reprogramar') {
                     console.log('notificar-rep paciente: ', { turno });
-                    res.render('./turnos/notificar-rep', { turno});
-                }else{
+                    res.render('./turnos/notificar-rep', { turno });
+                } else {
                     res.redirect('/turnos/solicitudes-turnos');
                 }
             }
@@ -331,10 +332,10 @@ router.post('/turns/asignar-turno/:id',isAuthenticated, async (req, res) => {
                 turno.appointed = true;
                 await turno.save();
                 req.flash('success_msg', 'Turno asignado correctamente');
-                if(req.body.boton === 'reprogramar'){
-                    console.log('notificar-rep paciente: ', { turno});
-                    res.render('./turnos/notificar-rep', { turno});
-                }else{
+                if (req.body.boton === 'reprogramar') {
+                    console.log('notificar-rep paciente: ', { turno });
+                    res.render('./turnos/notificar-rep', { turno });
+                } else {
                     res.redirect('/turnos/solicitudes-turnos');
                 }
             }
@@ -353,10 +354,10 @@ router.post('/turns/asignar-turno/:id',isAuthenticated, async (req, res) => {
                 turno.appointed = true;
                 await turno.save();
                 req.flash('success_msg', 'Turno asignado correctamente');
-                if(req.body.boton === 'reprogramar'){
-                    console.log('notificar-rep paciente: ', { turno});
-                    res.render('./turnos/notificar-rep', { turno});
-                }else{
+                if (req.body.boton === 'reprogramar') {
+                    console.log('notificar-rep paciente: ', { turno });
+                    res.render('./turnos/notificar-rep', { turno });
+                } else {
                     res.redirect('/turnos/solicitudes-turnos');
                 }
             }
@@ -370,14 +371,14 @@ router.post('/turns/asignar-turno/:id',isAuthenticated, async (req, res) => {
                     res.redirect('/turnos/solicitudes-turnos');
                 } else {
                     console.log('diff: ' + diff, 180);
-                        turno.orderDate = date;
-                        turno.appointed = true;
-                        await turno.save();
+                    turno.orderDate = date;
+                    turno.appointed = true;
+                    await turno.save();
                     req.flash('success_msg', 'Turno asignado correctamente');
-                    if(req.body.boton === 'reprogramar'){
-                        console.log('notificar-rep paciente: ', { turno});
+                    if (req.body.boton === 'reprogramar') {
+                        console.log('notificar-rep paciente: ', { turno });
                         res.render('./turnos/notificar-rep', { turno });
-                    }else{
+                    } else {
                         res.redirect('/turnos/solicitudes-turnos');
                     }
                 }
@@ -387,7 +388,7 @@ router.post('/turns/asignar-turno/:id',isAuthenticated, async (req, res) => {
     }
 });
 //---------------------------------------------ASIGNAR SIN RIESGO-----------------------------------------------------------
-router.post('/turns/solicitudes-turnos/asignarSinRiesgo/:id',isAuthenticated, async (req, res) => {
+router.post('/turns/solicitudes-turnos/asignarSinRiesgo/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
     const turno = await Turno.findById(id);
     const paciente = await User.findById(turno.user);
@@ -423,7 +424,7 @@ router.post('/turns/solicitudes-turnos/asignarSinRiesgo/:id',isAuthenticated, as
 
 
 //--------------------------Asignar turno - administrador-----------------------------------------------
-router.post('/turns/solicitudes-turnos/:id',isAuthenticated, async (req, res) => {
+router.post('/turns/solicitudes-turnos/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
     const turno = await Turno.findById(id);
     const paciente = await User.findById(turno.user);
@@ -441,10 +442,10 @@ router.post('/turns/solicitudes-turnos/:id',isAuthenticated, async (req, res) =>
         fecha = fecha.add(1, 'd');
     };
 
-    var turnop = await Turno.findOne({ orderDate: fecha }); 
+    var turnop = await Turno.findOne({ orderDate: fecha });
     while (turnop) {
         fecha = fecha.add(10, 'm');
-        var turnop = await Turno.findOne({ orderDate: fecha }); 
+        var turnop = await Turno.findOne({ orderDate: fecha });
         console.log(turnop);
     }
     const tur = await Turno.findByIdAndUpdate(req.params.id, { "orderDate": fecha, "appointed": true });
@@ -489,13 +490,13 @@ router.post('/turns/marcarturno/:id', isAuthenticated, async (req, res) => {
 );
 
 //Notificar turno
-router.post('/turns/send-email/:id',isAuthenticated, async (req, res) => {
+router.post('/turns/send-email/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
     console.log("boton: ", req.body.boton);
     const turno = await Turno.findById(id);
     const paciente = await User.findById(turno.user);
     const boton = req.body.boton;
-    const body= req.body;
+    const body = req.body;
     console.log('Turno: ', turno);
     console.log('Paciente: ', paciente);
     const transporter = nodemailer.createTransport({
@@ -516,14 +517,14 @@ router.post('/turns/send-email/:id',isAuthenticated, async (req, res) => {
 
     if (boton === "notificar") {
         const tur = await Turno.findByIdAndUpdate(req.params.id, { "notified": true });
-        mailOptions.text = "Hola " + paciente.name + " " + paciente.surname + ", queríamos informarle que tiene un turno para aplicarse la vacuna " + turno.vaccineName + " para la Fecha :" + turno.orderDate.toDateString()  + " en la  " + turno.sede + ". Para conocer más accedé a tu cuenta en www.vacunassist.com.ar"
+        mailOptions.text = "Hola " + paciente.name + " " + paciente.surname + ", queríamos informarle que tiene un turno para aplicarse la vacuna " + turno.vaccineName + " para la Fecha :" + turno.orderDate.toDateString() + " en la  " + turno.sede + ". Para conocer más accedé a tu cuenta en www.vacunassist.com.ar"
     }
     if (boton === "cancelar") {
         mailOptions.text = "Hola " + paciente.name + " " + paciente.surname + ", queríamos informarle que su turno para la vacuna " + turno.vaccineName + " para la Fecha :" + turno.orderDate.toDateString() + " en la  " + turno.sede + "ha sido cancelado"
 
     }
     if (boton === "reprogramar") {
-        mailOptions.text = "Hola " + paciente.name + " " + paciente.surname + ", queríamos informarle que su turno para aplicarse la vacuna " + turno.vaccineName + " ha sido reprogramado para la Fecha :" + turno.orderDate.toDateString()  + " en la  " + turno.sede + ". Para conocer más accedé a tu cuenta en www.vacunassist.com.ar"
+        mailOptions.text = "Hola " + paciente.name + " " + paciente.surname + ", queríamos informarle que su turno para aplicarse la vacuna " + turno.vaccineName + " ha sido reprogramado para la Fecha :" + turno.orderDate.toDateString() + " en la  " + turno.sede + ". Para conocer más accedé a tu cuenta en www.vacunassist.com.ar"
     }
 
     transporter.sendMail(mailOptions, async (error, info) => {
@@ -536,10 +537,10 @@ router.post('/turns/send-email/:id',isAuthenticated, async (req, res) => {
 
     if (boton === "reprogramar") {
         res.redirect("/turns/turnosfuturos");
-    }else{
+    } else {
         res.redirect("/turnos/solicitudes-turnos");
     }
-    
+
 });
 
 
@@ -598,7 +599,7 @@ router.get('/users/administrador/turnos-entre-fechas', isAuthenticated, (req, re
 
 router.post('/users/administrador/turnos-entre-fechas', isAuthenticated, async (req, res) => {
     const { fechaIni, fechaFin, sedeSelect } = req.body;
-    console.log(sedeSelect); 
+    console.log(sedeSelect);
     if (fechaFin < fechaIni) {
         req.flash('error', 'La fecha de fin no debe ser mayor a la de inicio');
         res.redirect('/users/administrador/turnos-entre-fechas');
@@ -616,15 +617,21 @@ router.post('/users/administrador/turnos-entre-fechas', isAuthenticated, async (
         ]);
         const ini = new Date(fechaIni);
         const fin = new Date(fechaFin);
-        if(sedeSelect === 'Todos los turnos'){
+        if (sedeSelect === 'Todos los turnos') {
             resultado = resultado.filter(r => r.orderDate !== null).filter(r => (r.orderDate.setHours(0, 0, 0, 0) >= ini) && (r.orderDate.setHours(0, 0, 0, 0) <= fin));
             res.render('./users/administrador/mostrar-turnos-entre-f', { resultado, fechaIni, fechaFin });
-        }else{
+        } else {
             resultado = resultado.filter(r => r.orderDate !== null).filter(r => (r.orderDate.setHours(0, 0, 0, 0) >= ini) && (r.orderDate.setHours(0, 0, 0, 0) <= fin)).filter(r => r.sede === sedeSelect);
             res.render('./users/administrador/mostrar-turnos-entre-f', { resultado, fechaIni, fechaFin, sedeSelect });
         }
     }
 });
 
+//rechazar solicitud
+router.delete('/turns/rechazarSolicitud/:id', isAuthenticated, async (req, res) => {
+    await Turno.findByIdAndDelete(req.params.id);
+    req.flash('success_msg', 'Solicitud rechazada correctamente');
+    res.redirect('/turnos/solicitudes-turnos');
+});
 
 module.exports = router;
