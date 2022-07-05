@@ -1,0 +1,40 @@
+<h2>
+  <center>Turnos asignados entre las fechas: {{fechaIni}} y {{fechaFin}}</center>
+</h2>
+<h1> 
+  <center>Sede: {{sedeSelect}}</center>
+</h1>
+{{#if resultado}}
+<table class="table table-dark">
+  <thead>
+    <tr>
+      <th scope="col">Paciente</th>
+      <th scope="col">DNI</th>
+      <th scope="col">Vacuna</th>
+      <th scope="col">Sede</th>
+      <th scope="col">Fecha Asignada</th>
+      <th scope="col">Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each resultado}}
+    <tr>
+      <th>{{turnoUsuario.name}}, {{turnoUsuario.surname}}</th>
+      <th>{{turnoUsuario.dni}}</th>
+      <th>{{vaccineName}}</th>
+      <th>{{sede}}</th>
+      <th>{{orderDate}}</th>
+      {{#if attended}}
+        <th>Turno atendido</th>
+      {{else}}
+        <th>Turno no atendido</th>
+      {{/if}}  
+    </tr>
+    {{/each}}
+    {{else}}
+    <center>
+      <h1>No hay turnos para mostrar</h1>
+    </center>
+    {{/if}}
+  </tbody>
+</table>

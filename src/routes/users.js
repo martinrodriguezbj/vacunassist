@@ -51,7 +51,7 @@ router.post('/users/signup', async (req, res) => {
             const newUser = new User({ name, surname, email, password, dni, address, edad, role: PACIENTE, secretWord, validado: false});
             newUser.contra = password;
             newUser.password = await newUser.encryptPassword(password);
-            if (riesgo === 'Si' || edad >= 60) {
+            if (riesgo === 'Si') {
                 newUser.riesgo = true; 
             }else{
                 newUser.riesgo = false; 
@@ -305,11 +305,20 @@ router.post('/users/vacunador/buscarVac', isAuthenticated, async (req, res) => {
     }
 });
 
-//eliminar vacunador
+//eliminar vacunador o paciente
 router.delete('/users/administrador/delete/:id', isAuthenticated, async (req, res) => {
     await User.findByIdAndDelete(req.params.id);
-    req.flash('success_msg', 'El vacunador ha sido eliminado correctamente.');
-    res.redirect('/users/administrador/buscar-vacunador');  
+    const btn = req.body.boton; 
+    if(btn === 'vacunador'){
+        req.flash('success_msg', 'El vacunador ha sido eliminado correctamente.');
+        res.redirect('/users/administrador/buscar-vacunador'); 
+    }else if(btn === 'paciente'){
+        req.flash('success_msg', 'El paciente ha sido eliminado correctamente.');
+        res.redirect('/users/administrador/listar-pacientes');
+    }else if(btn ==='vacunador2'){
+        req.flash('success_msg', 'El vacunador ha sido eliminado correctamente.');
+        res.redirect('/users/administrador/listarVac');
+    }   
 });
 
 //registrar vacunador /users/administrador/registrar-vacunador
@@ -417,5 +426,6 @@ router.get('/users/administrador/listar-vacunadores', isAuthenticated, async (re
     vacunadores = vacunadores.filter( v => v.role === 'vacunador'); 
     res.render('users/administrador/listarVac', { vacunadores });
 });
+
 
 module.exports = router;

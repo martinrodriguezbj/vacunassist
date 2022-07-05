@@ -9,6 +9,7 @@
       <th scope="col">DNI</th>
       <th scope="col">Vacuna</th>
       <th scope="col">Fecha Asignada</th>
+      <th scope="col">Sede</th>
       <th scope="col">Cancelacion</th>
       <th scope="col">Reprogramacion</th>
     </tr>
@@ -20,6 +21,7 @@
       <th>{{turnoUsuario.dni}}</th>
       <th>{{vaccineName}}</th>
       <th>{{orderDate}}</th>
+      <th>{{sede}}</th>
       <th>
 
         <form action="/turns/cancel2/{{_id}}?_method=DELETE" method="POST">
@@ -51,12 +53,11 @@
             </div>
           </div>
         </form>
-
       </th>
       <th>
-        <form action="/turns/marcarturno/{{_id}}" method="POST">
+        <form action="/turns/asignar-turno2/{{_id}}" method="POST">
           <input type="hidden" name="_method" value="PUT">
-          <button class="btn btn-danger btn-block btn-sm" type="submit">
+          <button name="boton" value="reprogramar" type="submit">
             Reprogramar turno
           </button>
         </form>
@@ -64,9 +65,31 @@
     </tr>
     {{/each}}
     {{else}}
-    <center>
-      <h1>No hay turnos para mostrar</h1>
-    </center>
+    {{#unless turno}}
+      <center>
+        <h1>No hay turnos para mostrar</h1>
+      </center>
+    {{else}}
+      <table class="table table-dark">
+      <thead>
+      <tr>
+        <th scope="col">Vacuna</th>
+        <th scope="col">Fecha Asignada</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <th>{{turno.vaccineName}}</th>
+        <th>{{turno.orderDate}}</th>
+      <th>
+        <form action="/turns/send-email/{{turno.id}}" method="POST">
+          <input type="hidden" name="_method" value="PUT">
+          <button name="boton" value="cancelar" type="submit">
+            Notificar cancelación
+          </button>
+        </form>
+      </th>
+    {{/unless}}
     {{/if}}
   </tbody>
 </table>

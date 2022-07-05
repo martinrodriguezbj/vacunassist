@@ -1,0 +1,27 @@
+<div class="col-md-4 mx-auto">
+    <div class="card">
+        <div class="card-header">
+            <h3>Buscar turnos entre dos fechas</h3>
+        </div>
+        <div class="card-body">
+            <form action="/users/administrador/turnos-entre-fechas" method="POST">
+                <div class="form group">
+                    <input type="date" name="fechaIni" class="form-control" placeholder="Fecha inicial" required="true" autofocus>
+                </div>
+                <div class="form group">
+                    <input type="date" name="fechaFin" class="form-control" placeholder="Fecha final" required="true" autofocus>
+                </div>
+                <div class="form group">
+                    <select name="sedeSelect" class="">
+                        <option>Sede 1</option>
+                        <option>Sede 2</option>
+                        <option>Sede 3</option>
+                        <option>Todos los turnos</option>
+                    </select>
+                <div class="form group">
+                    <button class="btn btn btn-primary block" type="submit">Buscar turnos</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

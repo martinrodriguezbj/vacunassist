@@ -11,6 +11,7 @@ const passport = require('passport');
 const { PACIENTE, ADMINISTRADOR, VACUNADOR } = require('./helpers/Roles');
 const nodemailer = require('nodemailer');
 const SMTPConnection = require('nodemailer/lib/smtp-connection');
+const bp = require('body-parser'); 
 
 // Inicializaciones
 const app = express();
@@ -39,7 +40,8 @@ hbs.registerHelper("esMayor", function(value, value2)
 });
 
 // Middlewares - acá van todas nuestras funciones q van a ser ejecutadas antes de que lleguen al servidor
-app.use(express.urlencoded({ extended: false }));
+app.use(bp.json()); 
+app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 app.use(session({
   secret: 'mysecretapp',
@@ -54,6 +56,7 @@ app.use(
     createParentPath: true,
   })
 );
+
 
 // Global variables - nos sirve para colocar ciertos datos que queremos que toda nuestra aplicacion tenga accesible
 app.use((req, res, next) => {
